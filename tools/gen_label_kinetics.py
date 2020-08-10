@@ -5,16 +5,36 @@
 # ------------------------------------------------------
 # Code adapted from https://github.com/metalbubble/TRN-pytorch/blob/master/process_dataset.py
 
+import argparse
 import os
 
 
-dataset_path = '/ssd/video/kinetics/images256/'
-label_path = '/ssd/video/kinetics/labels'
+
+
+def parse_args():
+    """Parse args."""
+    parser = argparse.ArgumentParser(
+        description="Extract frames.\n"
+        "python gen_label_kinetics.py ../../kinetics-downloader/dataset/train "
+        "../../kinetics-downloader/dataset/train/")
+    # data related
+    parser.add_argument("--dataset_path", type=str, required=True,
+                        help='root path to kinetics dataset. Folders named "
+                        "with classes are listed under this directory. Each "
+                        "class folder has more than one mp4 videos.")
+    parser.add_argument("--label_path", type=str, required=True,
+                        help="destination directory to save label files.")
+    return parser.parse_args()
+
 
 if __name__ == '__main__':
+    args = parse_args()
+    dataset_path = args.dataset_path
+    label_path = args.label_path
     with open('kinetics_label_map.txt') as f:
         categories = f.readlines()
-        categories = [c.strip().replace(' ', '_').replace('"', '').replace('(', '').replace(')', '').replace("'", '') for c in categories]
+        categories = [c.strip().replace(' ', '_').replace('"', '').replace(
+            '(', '').replace(')', '').replace("'", '') for c in categories]
     assert len(set(categories)) == 400
     dict_categories = {}
     for i, category in enumerate(categories):
@@ -35,7 +55,8 @@ if __name__ == '__main__':
             line = line.rstrip()
             items = line.split(',')
             folders.append(items[1] + '_' + items[2])
-            this_catergory = items[0].replace(' ', '_').replace('"', '').replace('(', '').replace(')', '').replace("'", '')
+            this_catergory = items[0].replace(' ', '_').replace(
+                '"', '').replace('(', '').replace(')', '').replace("'", '')
             categories_list.append(this_catergory)
             idx_categories.append(dict_categories[this_catergory])
             count_cat[this_catergory] += 1
@@ -54,9 +75,11 @@ if __name__ == '__main__':
                 # print(missing_folders)
             else:
                 dir_files = os.listdir(img_dir)
-                output.append('%s %d %d'%(os.path.join(categories_list[i], curFolder), len(dir_files), curIDX))
-            print('%d/%d, missing %d'%(i, len(folders), len(missing_folders)))
-        with open(os.path.join(label_path, filename_output),'w') as f:
+                output.append('%s %d %d' % (os.path.join(
+                    categories_list[i], curFolder), len(dir_files), curIDX))
+            print('%d/%d, missing %d' %
+                  (i, len(folders), len(missing_folders)))
+        with open(os.path.join(label_path, filename_output), 'w') as f:
             f.write('\n'.join(output))
-        with open(os.path.join(label_path, 'missing_' + filename_output),'w') as f:
+        with open(os.path.join(label_path, 'missing_' + filename_output), 'w') as f:
             f.write('\n'.join(missing_folders))
